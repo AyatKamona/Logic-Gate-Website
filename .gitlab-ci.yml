@@ -1,0 +1,19 @@
+image: node
+
+cache:
+  paths:
+    - node_modules
+
+stages:
+  - init
+  - lint
+
+init:
+  stage: init
+  script:
+    - npm install eslint @react-native-community/eslint-config
+
+eslint:
+  stage: lint
+  script:
+    - node_modules/eslint/bin/eslint.js .
