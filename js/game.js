@@ -103,7 +103,11 @@ class LogicGate extends GameComponent {
         }
 
         // Filling unused input space with false values to prevent errors
-        while (results.length != this.inputLimit) {
+        if (this.inputLimit > 0) {
+            while (results.length < this.inputLimit) {
+                results.push(false);
+            }
+        } else if (results.length == 0) { // Ensure at least one value is filled
             results.push(false);
         }
 
@@ -114,11 +118,28 @@ class LogicGate extends GameComponent {
 // Not Gate that inverts the single input it receives
 class NotGate extends LogicGate {
     constructor(componentId) {
-        super(componentId,1);
+        super(componentId, 1);
     }
 
     logic(inputs) {
         return inputs[0] != true;
+    }
+}
+
+// AND Gate that takes the  the single input it receives
+class AndGate extends LogicGate {
+    constructor(componentId) {
+        super(componentId, 0);
+    }
+
+    logic(inputs) {
+        inputs.forEach(element => {
+            if (element == false) {
+                return false;
+            }
+        });
+
+        return true;
     }
 }
 
