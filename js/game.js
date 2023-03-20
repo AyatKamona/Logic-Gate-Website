@@ -2,13 +2,28 @@
     Classes are currently grouped into the same .js file for ease of testing but will later be seperated
 */
 
-// Class that handles game elements affected by user input
-class UserInput {
-    inputId;
+class GameComponent {
+    #componentId;
 
+    constructor(componentId) {
+        if (this.constructor == GameComponent) {
+            throw new Error("GameComponent is an abstract class and must be extended.");
+        } else {
+            this.#componentId = componentId;
+        }
+    }
+
+    getId() {
+        return(this.#componentId);
+    }
+}
+
+// Class that handles game elements affected by user input
+class UserInput extends GameComponent {
     // TODO: link to an interactable element on creation
-    constructor(inputId) {
-        this.inputId = inputId;
+    // TODO: Extend StaticInput instead of GameComponent
+    constructor(componentId) {
+        super(componentId);
     }
 
     getOutput() {
@@ -17,10 +32,11 @@ class UserInput {
 }
 
 // Class that holds an unchanging boolean value
-class StaticInput {
+class StaticInput extends GameComponent {
     input;
 
-    constructor(inputValue) {
+    constructor(componentId, inputValue) {
+        super(componentId);
         this.input = inputValue;
     }
 
@@ -42,15 +58,16 @@ class LogicGateFactory {
 }
 
 // Abstract class that must be implemented by more concrete subclasses
-class LogicGate {
+class LogicGate extends GameComponent {
     inputSet = new Set();
     outputSet = new Set();
     inputLimit;
 
-    constructor(inputLimit) {
+    constructor(componentId, inputLimit) {
         if (this.constructor == LogicGate) {
             throw new Error("LogicGate is an abstract class and must be extended.");
         } else {
+            super(componentId);
             this.inputLimit = inputLimit;
         }
     }
@@ -96,8 +113,8 @@ class LogicGate {
 
 // Not Gate that inverts the single input it receives
 class NotGate extends LogicGate {
-    constructor() {
-        super(1);
+    constructor(componentId) {
+        super(componentId,1);
     }
 
     logic(inputs) {
@@ -182,21 +199,16 @@ class Game {
     }
 
     // Draws UI elements to represent the state of the logic components of the level, and displays the level description 
-    displayLevel() {
+    displayLevel(canvas) {
         document.getElementById("levelNumber").innerHTML = "Level: " + (this.level+1);
         document.getElementById("levelDescription").innerHTML = this.description;
-    }
-
-    // Compares expected boolean value against real value. Used for determining if player has completed level
-    validateOutput(logicGateId, expectedValue) {
-        
     }
 }
 
 var canvas;
 
 window.onload = function() {
-    canvas = document.getElementById("game");
+    const canvas = document.getElementById("game");
     //Tesing html interactions
     document.getElementById("levelNumber").innerHTML = "Level: 1";
     document.getElementById("levelDescription").innerHTML = "Level description text";
