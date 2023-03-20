@@ -16,6 +16,7 @@ class UserInput {
     }
 }
 
+// Class that holds an unchanging boolean value
 class StaticInput {
     input;
 
@@ -28,7 +29,7 @@ class StaticInput {
     }
 }
 
-// Factory class for creating logic gates based on a string identifier
+// Static factory class for creating logic gates based on a string identifier
 class LogicGateFactory {
     static constructLogicGate(gateIdentifier) {
         switch (gateIdentifier.toLowerCase()) {
@@ -69,7 +70,7 @@ class LogicGate {
         throw new Error("Method 'logic()' must be implemented.");
     }
 
-    // Recursive function 
+    // Recursively calculates the logical output of a gate and its children
     calculateOutput(logic) {
         results = [];
 
