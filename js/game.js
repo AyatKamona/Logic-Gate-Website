@@ -47,6 +47,10 @@ class StaticInput extends GameComponent {
 
 // Static factory class for creating logic gates based on a string identifier
 class LogicGateFactory {
+    constructor() {
+        throw new Error("LogicGateFactory is static and cannot be initialized.")
+    }
+
     static constructLogicGate(gateIdentifier) {
         switch (gateIdentifier.toLowerCase()) {
             case "NOT":
@@ -126,7 +130,7 @@ class NotGate extends LogicGate {
     }
 }
 
-// AND Gate that takes the  the single input it receives
+// AND Gate that takes returns false if any value is false
 class AndGate extends LogicGate {
     constructor(componentId) {
         super(componentId, 0);
@@ -140,6 +144,23 @@ class AndGate extends LogicGate {
         });
 
         return true;
+    }
+}
+
+// OR Gate that takes returns true if any value is true
+class OrGate extends LogicGate {
+    constructor(componentId) {
+        super(componentId, 0);
+    }
+
+    logic(inputs) {
+        inputs.forEach(element => {
+            if (element == true) {
+                return true;
+            }
+        });
+
+        return false;
     }
 }
 
