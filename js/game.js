@@ -29,9 +29,9 @@ class StaticInput extends GameComponent {
     // Boolean input & output
     _state;
 
-    constructor(componentId, inputValue) {
+    constructor(componentId, state) {
         super(componentId);
-        this._state = inputValue;
+        this._state = state;
     }
 
     getOutput() {
@@ -223,10 +223,13 @@ class Level {
         this.#description(stringArray[2]);
     }
 
+    // Takes a string and returns an array of strings representing each stage of the level creation pipeline
     #parseLevelString(levelString) {
-        
+        // Removing whitespace
+        levelString = levelString.replace(/\s+/g, '');
     }
     
+    // Creates components based on the string input and adds them to the #components map
     #createComponents(componentString) {
         const componentStringArray = componentString.split(",");
         componentStringArray.forEach(element => {
@@ -253,19 +256,23 @@ class Level {
         });
     }
 
+    // Connects existing components using the addInput function
     #createConnections(connectionString) {
 
     }
 
+    // Returns the description of the level
     getDescription() {
         return(this.#description);
     }
 
+    // Returns a deep copy of the levels components
     getComponents() {
         var mapClone = new Map(this.#components);
         return(mapClone);
     }
 
+    // Resets the level to its default state
     reset() {
 
     }
