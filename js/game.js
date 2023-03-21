@@ -232,6 +232,7 @@ class Level {
     // Creates components based on the string input and adds them to the #components map
     #createComponents(componentString) {
         const componentStringArray = componentString.split(",");
+
         componentStringArray.forEach(element => {
             const keyValuePair = element.split("=");
             var newComponent;
@@ -258,7 +259,33 @@ class Level {
 
     // Connects existing components using the addInput function
     #createConnections(connectionString) {
+        const connectionStringArray = connectionString.split(")");
 
+        connectionStringArray.forEach(element => {
+            // Remove leading commas created by split
+            if (element.indexOf(",") == 0) {
+                element = element.subString(1);
+            }
+
+            const connectionHostId = element.substring(0, element.indexOf("(") - 1);
+            const connectionHost = this.#components.get(connectionHostId);
+            
+            if (connectionHost == null) {
+                throw new Error("Connection host '" + connectionHostId + "' does not exist");
+            }
+
+            const inputArray =  element.subString(element.indexOf("(") + 1).split(",");
+
+            inputArray.forEach(connectionChildId => {
+                const connectionChild = this.#components.get(connectionChildId);
+
+                if (connectionChild == null) {
+                    throw new Error("Connection child '" + connectionChildId + "' does not exist");
+                }
+
+                connectionHost.addInput(connectionChild);
+            });
+        });
     }
 
     // Returns the description of the level
