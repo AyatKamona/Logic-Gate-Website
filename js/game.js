@@ -24,35 +24,31 @@ class GameComponent {
     }
 }
 
-// Class that handles game elements affected by user input
-class UserInput extends GameComponent {
-    // Boolean input & output
-    #state;
-
-    // TODO: link to an interactable element on creation
-    // TODO: Extend StaticInput instead of GameComponent
-    constructor(componentId) {
-        super(componentId);
-        this.#state = true;
-    }
-
-    getOutput() {
-        return this.#state;
-    }
-}
-
 // Class that holds an unchanging boolean value
 class StaticInput extends GameComponent {
     // Boolean input & output
-    #state;
+    _state;
 
     constructor(componentId, inputValue) {
         super(componentId);
-        this.#state = inputValue;
+        this._state = inputValue;
     }
 
     getOutput() {
-        return this.#state;
+        return this._state;
+    }
+}
+
+// Class that handles game elements affected by user input
+class UserInput extends StaticInput {
+    // TODO: link to an interactable element on creation
+    // TODO: Extend StaticInput instead of GameComponent
+    constructor(componentId) {
+        super(componentId, false);
+    }
+
+    ToggleOutput() {
+        return this._state != true;
     }
 }
 
