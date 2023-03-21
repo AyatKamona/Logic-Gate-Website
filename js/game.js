@@ -51,10 +51,12 @@ class LogicGateFactory {
         throw new Error("LogicGateFactory is static and cannot be initialized.")
     }
 
-    static constructLogicGate(gateIdentifier) {
+    static constructLogicGate(componentId, gateIdentifier) {
         switch (gateIdentifier.toLowerCase()) {
-            case "NOT":
-                return new NotGate();
+            case "not":
+                return new NotGate(componentId);
+            case "and":
+                return new AndGate(componentId);
             default:
                 return null;
         }
@@ -119,7 +121,7 @@ class LogicGate extends GameComponent {
     }
 }
 
-// Not Gate that inverts the single input it receives
+// NOT Gate that inverts the single input it receives
 class NotGate extends LogicGate {
     constructor(componentId) {
         super(componentId, 1);
@@ -216,13 +218,13 @@ class Game {
             var newObject;
 
             if (keyValuePair[1].toLowerCase() == "true") {
-                newObject = new StaticInput(true);
+                newObject = new StaticInput(keyValuePair[0], true);
             } else if (keyValuePair[1].toLowerCase() == "false") {
-                newObject = new StaticInput(false);
+                newObject = new StaticInput(keyValuePair[0], false);
             } else if (keyValuePair[1].toLowerCase() == "userinput") {
-                newObject = new UserInput();
+                newObject = new UserInput(keyValuePair[0]);
             } else {
-                newObject = LogicGateFactory.constructLogicGate(keyValuePair[1]);
+                newObject = LogicGateFactory.constructLogicGate(keyValuePair[0], keyValuePair[1]);
             }
 
             // Making sure the value met one of the object creation requirements
@@ -251,7 +253,7 @@ var canvas;
 
 window.onload = function() {
     const canvas = document.getElementById("game");
-    //Tesing html interactions
+    // Testing html interactions
     document.getElementById("levelNumber").innerHTML = "Level: 1";
     document.getElementById("levelDescription").innerHTML = "Level description text";
 }
