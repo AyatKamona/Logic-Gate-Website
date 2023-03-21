@@ -132,7 +132,7 @@ class NotGate extends LogicGate {
     }
 }
 
-// AND Gate that takes returns false if any value is false
+// AND Gate that returns false if any value is false
 class AndGate extends LogicGate {
     constructor(componentId) {
         super(componentId, 0);
@@ -149,7 +149,7 @@ class AndGate extends LogicGate {
     }
 }
 
-// OR Gate that takes returns true if any value is true
+// OR Gate that returns true if any value is true
 class OrGate extends LogicGate {
     constructor(componentId) {
         super(componentId, 0);
@@ -163,6 +163,28 @@ class OrGate extends LogicGate {
         });
 
         return false;
+    }
+}
+
+// XOR Gate that returns true if only one value is true
+class XorGate extends LogicGate {
+    constructor(componentId) {
+        super(componentId, 0);
+    }
+
+    logic(inputs) {
+        var truths = 0;
+
+        inputs.forEach(element => {
+            if (element == true) {
+                truths++;
+                if (truths > 1) {
+                    return (false);
+                }
+            }
+        });
+
+        return(truths == 1);
     }
 }
 
