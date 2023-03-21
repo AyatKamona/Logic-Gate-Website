@@ -18,6 +18,7 @@ class GameComponent {
         return(this.#componentId);
     }
 
+    // An abstract method that requires implementation by a subclass
     getOutput() {
         throw new Error("Method 'getOutput()' must be implemented.");
     }
@@ -75,10 +76,13 @@ class LogicGateFactory {
 
 // Abstract class that must be implemented by more concrete subclasses
 class LogicGate extends GameComponent {
-    inputSet = new Set();
-    outputSet = new Set();
-    inputLimit;
-    // boolean value representing the outcome of the last calculateOutput() result
+    // Set of LogicGate objects representing input connections
+    #inputSet = new Set();
+    // Set of LogicGate objects representing output connections
+    #outputSet = new Set();
+    // Integer determining the maximum amount of inputs a logic gate can have
+    #inputLimit;
+    // Boolean representing the outcome of the last calculateOutput() result
     #stateSnapshot;
 
     constructor(componentId, inputLimit) {
@@ -86,18 +90,18 @@ class LogicGate extends GameComponent {
             throw new Error("LogicGate is an abstract class and must be extended.");
         } else {
             super(componentId);
-            this.inputLimit = inputLimit;
+            this.#inputLimit = inputLimit;
         }
     }
 
     // Adds an object reference to the input set
     addInput(input) {
-        this.inputSet.add(input);
+        this.#inputSet.add(input);
     }
 
     // Adds an object reference to the output set
     addOutput(output) {
-        this.outputSet.add(output);
+        this.#outputSet.add(output);
     }
 
     getOutput() {
@@ -111,7 +115,7 @@ class LogicGate extends GameComponent {
 
     // Recursively calculates the logical output of a gate and its children
     calculateOutput(logic) {
-        results = [];
+        var results = [];
 
         // Getting outputs of the logic gate's inputs
         for (const input of inputSet.values) {
@@ -125,15 +129,18 @@ class LogicGate extends GameComponent {
         }
 
         // Filling unused input space with false values to prevent errors
-        if (this.inputLimit > 0) {
-            while (results.length < this.inputLimit) {
+        if (this.#inputLimit > 0) {
+            while (results.length < this.#inputLimit) {
                 results.push(false);
             }
         } else if (results.length == 0) { // Ensure at least one value is filled
             results.push(false);
         }
 
-        return logic(results);
+        var output = logic(results);
+        this.#stateSnapshot = output;
+
+        return output;
     }
 }
 
