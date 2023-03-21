@@ -1,5 +1,3 @@
 [fixedInput1=1,notGate=NOT]
-[notGate(1)]
+[notGate(fixedInput1)]
 [Description]
-
-[]

@@ -3,6 +3,7 @@
 */
 
 class GameComponent {
+    // Unique String identifier of the component
     #componentId;
 
     constructor(componentId) {
@@ -16,32 +17,41 @@ class GameComponent {
     getId() {
         return(this.#componentId);
     }
+
+    getOutput() {
+        throw new Error("Method 'getOutput()' must be implemented.");
+    }
 }
 
 // Class that handles game elements affected by user input
 class UserInput extends GameComponent {
+    // Boolean input & output
+    #state;
+
     // TODO: link to an interactable element on creation
     // TODO: Extend StaticInput instead of GameComponent
     constructor(componentId) {
         super(componentId);
+        this.#state = true;
     }
 
     getOutput() {
-        return true;
+        return this.#state;
     }
 }
 
 // Class that holds an unchanging boolean value
 class StaticInput extends GameComponent {
-    input;
+    // Boolean input & output
+    #state;
 
     constructor(componentId, inputValue) {
         super(componentId);
-        this.input = inputValue;
+        this.#state = inputValue;
     }
 
     getOutput() {
-        return this.input;
+        return this.#state;
     }
 }
 
@@ -68,6 +78,8 @@ class LogicGate extends GameComponent {
     inputSet = new Set();
     outputSet = new Set();
     inputLimit;
+    // boolean value representing the outcome of the last calculateOutput() result
+    #stateSnapshot;
 
     constructor(componentId, inputLimit) {
         if (this.constructor == LogicGate) {
@@ -86,6 +98,10 @@ class LogicGate extends GameComponent {
     // Adds an object reference to the output set
     addOutput(output) {
         this.outputSet.add(output);
+    }
+
+    getOutput() {
+        return(this.#stateSnapshot);
     }
 
     // An abstract method that requires implementation by a subclass
