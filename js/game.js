@@ -169,105 +169,134 @@ class OrGate extends LogicGate {
 // XOR Gate that returns true if only one value is true
 class XorGate extends LogicGate {
     constructor(componentId) {
-        super(componentId, 0);
+        super(componentId, 2);
     }
 
     logic(inputs) {
-        var truths = 0;
+        var isTrue = false;
 
         inputs.forEach(element => {
             if (element == true) {
-                truths++;
-                if (truths > 1) {
+                if (isTrue == true) {
                     return (false);
                 }
+
+                isTrue = true;
             }
         });
 
-        return(truths == 1);
+        return(isTrue);
     }
 }
 
-// Game class
-class Game {
-    gameFile;
-    levelStringArray = [];
-    level;
-    levelObjects = new Map();
-    description;
-    headGate;
+// Level class
+class Level {
+    // String storing the default state of the level for resets
+    #levelString;
+    #components = new Map();
+    #description;
 
-    constructor(file) {
-        this.gameFile = file;
-        this.level = 0;
-        // TODO: read file and enter levels into levelStringArray
-        var levelString = "";
-        this.createLevel();
+    constructor(levelString) {
+        this.#levelString = levelString;
+        stringArray = this.#parseLevelString(levelString);
+        this.#createComponents(stringArray[0]);
+        this.#createConnections(stringArray[1]);
+        this.#description(stringArray[2]);
     }
 
-    // Advances to the next level
-    nextLevel() {
-        const oldLevel = this.level;
-        this.level = Math.min(this.levelStringArray.length, this.level + 1);
-        if (oldLevel != this.level) {
-            this.createLevel();
-        }
-    }
-
-    // Returns to the previous level
-    previousLevel() {
-        const oldLevel = this.level;
-        this.level = Math.max(0, this.level - 1);
-        if (oldLevel != this.level) {
-            this.createLevel();
-        }
+    #parseLevelString(levelString) {
+        
     }
     
-    // Takes the level string and sets up the objects, connections, and visuals required for the game to be played
-    createLevel() {
-        this.levelString = this.levelStringArray[level];
-        this.createLevelObjects();
-        this.stringToTree();
-        this.displayLevel();
-    }
-
-    // Converts an object string to a map of objects
-    createLevelObjects(objectString) {
-        this.levelObjects.clear();
-        const objectStringArray = objectString.split(",");
-        objectStringArray.forEach(element => {
+    #createComponents(componentString) {
+        const componentStringArray = componentString.split(",");
+        componentStringArray.forEach(element => {
             const keyValuePair = element.split("=");
-            var newObject;
+            var newComponent;
 
+            // Temporary in-function factory until I replace LogicGateFactory with a ComponentFactory
             if (keyValuePair[1].toLowerCase() == "true") {
-                newObject = new StaticInput(keyValuePair[0], true);
+                newComponent = new StaticInput(keyValuePair[0], true);
             } else if (keyValuePair[1].toLowerCase() == "false") {
-                newObject = new StaticInput(keyValuePair[0], false);
+                newComponent = new StaticInput(keyValuePair[0], false);
             } else if (keyValuePair[1].toLowerCase() == "userinput") {
-                newObject = new UserInput(keyValuePair[0]);
+                newComponent = new UserInput(keyValuePair[0]);
             } else {
-                newObject = LogicGateFactory.constructLogicGate(keyValuePair[0], keyValuePair[1]);
+                newComponent = LogicGateFactory.constructLogicGate(keyValuePair[0], keyValuePair[1]);
             }
 
             // Making sure the value met one of the object creation requirements
-            if (newObject != null) {
-                this.levelObjects.set(keyValuePair[0], newObject);
+            if (newComponent != null) {
+                this.#components.set(keyValuePair[0], newComponent);
             } else {
                 throw new Error("Value of pair: " + element + " is not supported");
             }
         });
     }
 
-    // Converts a connection string to a game object tree
-    stringToTree(connectionString) {
-        const ConnectionStringArray = connectionString.split(",");
-        // TODO: get ID's from string and insert inputs/outputs to the their respective objects
+    #createConnections(connectionString) {
+
+    }
+
+    getDescription() {
+        return(this.#description);
+    }
+
+    getComponents() {
+        var mapClone = new Map(this.#components);
+        return(mapClone);
+    }
+
+    reset() {
+
+    }
+}
+
+// Game class responsible for storing levels and interacting with the canvas
+class Game {
+    // Canvas object that the game will be displayed on
+    #canvas;
+    // Array of Level objects belonging to current game
+    #levels = [];
+    // Integer value representing the current level
+    #currentLevel;
+
+    constructor(canvas, filepath) {
+        this.#canvas = canvas;
+        this.#currentLevel = 0;
+        //TODO: Read file from path
+    }
+
+    getCurrentLevel() {
+        return(this.#currentLevel);
+    }
+
+    // Advances to the next level
+    nextLevel() {
+        const oldLevel = this.#currentLevel;
+        this.#currentLevel = Math.min(this.#levels.length, this.#currentLevel + 1);
+        if (oldLevel != this.#currentLevel) {
+            this.displayLevel();
+        }
+    }
+
+    // Returns to the previous level
+    previousLevel() {
+        const oldLevel = this.#currentLevel;
+        this.#currentLevel = Math.max(0, this.#currentLevel - 1);
+        if (oldLevel != this.#currentLevel) {
+            this.displayLevel();
+        }
+    }
+
+    resetLevel() {
+        this.#levels[this.#currentLevel].reset();
+        this.displayLevel();
     }
 
     // Draws UI elements to represent the state of the logic components of the level, and displays the level description 
-    displayLevel(canvas) {
-        document.getElementById("levelNumber").innerHTML = "Level: " + (this.level+1);
-        document.getElementById("levelDescription").innerHTML = this.description;
+    displayLevel() {
+        
     }
 }
 

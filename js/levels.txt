@@ -1,3 +1,5 @@
-[fixedInput1=1,notGate=NOT],
-[notGate(1)],
-[Description];
+[fixedInput1=1,notGate=NOT]
+[notGate(1)]
+[Description]
+
+[]
