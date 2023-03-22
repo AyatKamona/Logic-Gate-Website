@@ -48,7 +48,8 @@ class UserInput extends StaticInput {
     }
 
     ToggleOutput() {
-        return this._state != true;
+        this._state = this._state != true;
+        return this._state;
     }
 }
 
@@ -64,6 +65,10 @@ class LogicGateFactory {
                 return new NotGate(componentId);
             case "and":
                 return new AndGate(componentId);
+            case "or":
+                return new OrGate(componentId);
+            case "xor":
+                return new XorGate(componentId);
             default:
                 return null;
         }
@@ -92,7 +97,9 @@ class LogicGate extends GameComponent {
 
     // Adds an object reference to the input set
     addInput(input) {
-        this.#inputSet.add(input);
+        if (this.#inputSet.size < this.#inputLimit) {
+            this.#inputSet.add(input);
+        }
     }
 
     // Adds an object reference to the output set
@@ -114,7 +121,7 @@ class LogicGate extends GameComponent {
         var results = [];
 
         // Getting outputs of the logic gate's inputs
-        for (const input of inputSet.values) {
+        for (const input of this.#inputSet.values) {
             if (input instanceof LogicGate) {
                 results.push(input.calculateOutput(input.logic));
             } else if (input instanceof UserInput || input instanceof StaticInput) {
@@ -269,7 +276,7 @@ class Level {
 
             const connectionHostId = element.substring(0, element.indexOf("(") - 1);
             const connectionHost = this.#components.get(connectionHostId);
-            
+
             if (connectionHost == null) {
                 throw new Error("Connection host '" + connectionHostId + "' does not exist");
             }
@@ -357,7 +364,6 @@ var canvas;
 
 window.onload = function() {
     const canvas = document.getElementById("game");
-    // Testing html interactions
     document.getElementById("levelNumber").innerHTML = "Level: 1";
     document.getElementById("levelDescription").innerHTML = "Level description text";
 }
