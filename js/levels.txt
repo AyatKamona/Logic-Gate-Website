@@ -1,7 +1,15 @@
 [userInput1=USERINPUT, notGate=NOT]
-[notGate(fixedInput1)]
+[notGate(userInput1)]
 [Description]
 
 [userInput1=USERINPUT, userInput2=USERINPUT, andGate=AND]
-[notGate(fixedInput1)]
+[andGate(userInput1,userInput2)]
+[Description]
+
+[userInput1=USERINPUT, userInput2=USERINPUT, orGate=OR]
+[orGate(userInput1,userInput2)]
+[Description]
+
+[userInput1=USERINPUT, userInput2=USERINPUT, xorGate=XOR]
+[xorGate(userInput1,userInput2)]
 [Description]
