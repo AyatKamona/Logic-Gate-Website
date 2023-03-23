@@ -1,3 +1,7 @@
-[fixedInput1=1,notGate=NOT]
+[userInput1=USERINPUT, notGate=NOT]
+[notGate(fixedInput1)]
+[Description]
+
+[userInput1=USERINPUT, userInput2=USERINPUT, andGate=AND]
 [notGate(fixedInput1)]
 [Description]

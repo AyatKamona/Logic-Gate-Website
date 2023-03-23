@@ -230,13 +230,14 @@ class Level {
     // Takes a string and returns an array of strings representing each stage of the level creation pipeline
     #parseLevelString(levelString) {
         // Removing whitespace
-        levelString = levelString.replace(/\s+/g, '');
     }
     
     // Creates components based on the string input and adds them to the #components map
     #createComponents(componentString) {
         this.#components.clear();
-        const componentStringArray = componentString.split(",");
+
+        var filteredString = componentString.replace(/\s+/g, '');
+        const componentStringArray = filteredString.split(",");
 
         componentStringArray.forEach(element => {
             const keyValuePair = element.split("=");
@@ -264,7 +265,9 @@ class Level {
 
     // Connects existing components using the addInput function
     #createConnections(connectionString) {
-        const connectionStringArray = connectionString.split(")");
+        var filteredString = connectionString.replace(/\s+/g, '');
+
+        const connectionStringArray = filteredString.split(")");
 
         connectionStringArray.forEach(element => {
             // Remove leading commas created by split
