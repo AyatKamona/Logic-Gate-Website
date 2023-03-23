@@ -224,10 +224,7 @@ class Level {
 
     constructor(levelString) {
         this.#levelString = levelString;
-        stringArray = this.#parseLevelString(levelString);
-        this.#createComponents(stringArray[0]);
-        this.#createConnections(stringArray[1]);
-        this.#description(stringArray[2]);
+        this.reset();
     }
 
     // Takes a string and returns an array of strings representing each stage of the level creation pipeline
@@ -238,6 +235,7 @@ class Level {
     
     // Creates components based on the string input and adds them to the #components map
     #createComponents(componentString) {
+        this.#components.clear();
         const componentStringArray = componentString.split(",");
 
         componentStringArray.forEach(element => {
@@ -308,7 +306,10 @@ class Level {
 
     // Resets the level to its default state
     reset() {
-
+        stringArray = this.#parseLevelString(this.#levelString);
+        this.#createComponents(stringArray[0]);
+        this.#createConnections(stringArray[1]);
+        this.#description(stringArray[2]);
     }
 }
 
