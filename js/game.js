@@ -205,6 +205,12 @@ class Level {
     }
 
     #parseLevelString(levelString) {
+        var array = levelString.split(' ')
+        if (array.length != 3) {
+            console.log("Error")
+        }
+        return array
+
         
     }
     
@@ -251,6 +257,8 @@ class Level {
 
     }
 }
+
+
 
 // Game class responsible for storing levels and interacting with the canvas
 class Game {
