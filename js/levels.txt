@@ -1,3 +1,15 @@
-[fixedInput1=1,notGate=NOT]
-[notGate(fixedInput1)]
+[userInput1=USERINPUT, notGate=NOT]
+[notGate(userInput1)]
+[This is a not gate, which inverts the input]
+
+[userInput1=USERINPUT, userInput2=USERINPUT, andGate=AND]
+[andGate(userInput1,userInput2)]
+[This is an and gate, which ]
+
+[userInput1=USERINPUT, userInput2=USERINPUT, orGate=OR]
+[orGate(userInput1,userInput2)]
+[Description]
+
+[userInput1=USERINPUT, userInput2=USERINPUT, xorGate=XOR]
+[xorGate(userInput1,userInput2)]
 [Description]
