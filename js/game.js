@@ -321,8 +321,19 @@ class Game {
     }
 
     // Draws UI elements to represent the state of the logic components of the level, and displays the level description 
+
     displayLevel() {
-        
+        var canvas = document.getElementById("game");
+        var context = canvas.getContext("2d");
+        var img = new Image();
+        img.src = "../images/ANDGate.png";
+        window.onload = function(){
+            context.drawImage(img, 100, 200, 50, 50);
+            context.beginPath();
+            context.moveTo(50, 50);
+            context.lineTo(100, 200);
+            context.stroke();
+            }; 
     }
 }
 
