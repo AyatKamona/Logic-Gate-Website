@@ -87,10 +87,10 @@ class LogicGate extends GameComponent {
     #stateSnapshot;
 
     constructor(componentId, inputLimit) {
+        super(componentId);
         if (this.constructor == LogicGate) {
             throw new Error("LogicGate is an abstract class and must be extended.");
         } else {
-            super(componentId);
             this.#inputLimit = inputLimit;
         }
     }
@@ -229,15 +229,24 @@ class Level {
 
     // Takes a string and returns an array of strings representing each stage of the level creation pipeline
     #parseLevelString(levelString) {
-        // Removing whitespace
+        var levelStringArray = levelString.split("]");
+
+        // Removing whitespace from non-description strings
+        levelStringArray[0] = levelStringArray[0].replace(/\s+/g, '');
+        levelStringArray[1] = levelStringArray[1].replace(/\s+/g, '');
+
+        // Removing Excess brackets
+        for (let i = 0; i < levelStringArray.length; i++) {
+            levelStringArray[i] = levelStringArray[i].replaceAll("[", "");
+        }
+
+        return(levelStringArray);
     }
     
     // Creates components based on the string input and adds them to the #components map
     #createComponents(componentString) {
         this.#components.clear();
-
-        var filteredString = componentString.replace(/\s+/g, '');
-        const componentStringArray = filteredString.split(",");
+        const componentStringArray = componentString.split(",");
 
         componentStringArray.forEach(element => {
             const keyValuePair = element.split("=");
@@ -270,29 +279,32 @@ class Level {
         const connectionStringArray = filteredString.split(")");
 
         connectionStringArray.forEach(element => {
-            // Remove leading commas created by split
-            if (element.indexOf(",") == 0) {
-                element = element.subString(1);
-            }
-
-            const connectionHostId = element.substring(0, element.indexOf("(") - 1);
-            const connectionHost = this.#components.get(connectionHostId);
-
-            if (connectionHost == null) {
-                throw new Error("Connection host '" + connectionHostId + "' does not exist");
-            }
-
-            const inputArray =  element.subString(element.indexOf("(") + 1).split(",");
-
-            inputArray.forEach(connectionChildId => {
-                const connectionChild = this.#components.get(connectionChildId);
-
-                if (connectionChild == null) {
-                    throw new Error("Connection child '" + connectionChildId + "' does not exist");
+            // Ignoring empty array items
+            if(element != "") {
+                // Remove leading commas created by split
+                if (element.indexOf(",") == 0) {
+                    element = element.substring(1);
                 }
 
-                connectionHost.addInput(connectionChild);
-            });
+                const connectionHostId = element.substring(0, element.indexOf("("));
+                const connectionHost = this.#components.get(connectionHostId);
+
+                if (connectionHost == null) {
+                    throw new Error("Connection host '" + connectionHostId + "' does not exist");
+                }
+
+                const inputArray =  element.substring(element.indexOf("(") + 1).split(",");
+
+                inputArray.forEach(connectionChildId => {
+                    const connectionChild = this.#components.get(connectionChildId);
+
+                    if (connectionChild == null) {
+                        throw new Error("Connection child '" + connectionChildId + "' does not exist");
+                    }
+
+                    connectionHost.addInput(connectionChild);
+                });
+            }
         });
     }
 
@@ -309,10 +321,10 @@ class Level {
 
     // Resets the level to its default state
     reset() {
-        stringArray = this.#parseLevelString(this.#levelString);
+        var stringArray = this.#parseLevelString(this.#levelString);
         this.#createComponents(stringArray[0]);
         this.#createConnections(stringArray[1]);
-        this.#description(stringArray[2]);
+        this.#description = stringArray[2];
     }
 }
 
@@ -325,10 +337,51 @@ class Game {
     // Integer value representing the current level
     #currentLevel;
 
-    constructor(canvas, filepath) {
+    constructor(canvas) {
         this.#canvas = canvas;
         this.#currentLevel = 0;
-        //TODO: Read file from path
+        var cursor = 0;
+        var bracketsFound = 0;
+        
+        // Levels are hardcoded for testing
+        var gameString = `
+        [userInput1=USERINPUT, notGate=NOT]
+        [notGate(userInput1)]
+        [This is a not gate, which inverts the input]
+        
+        [userInput1=USERINPUT, userInput2=USERINPUT, andGate=AND]
+        [andGate(userInput1,userInput2)]
+        [This is an and gate, which will only return true if both inputs are true]
+        
+        [userInput1=USERINPUT, userInput2=USERINPUT, orGate=OR]
+        [orGate(userInput1,userInput2)]
+        [Description]
+        
+        [userInput1=USERINPUT, userInput2=USERINPUT, xorGate=XOR]
+        [xorGate(userInput1,userInput2)]
+        [Description]
+        `;
+        
+        while (true) {
+            if (bracketsFound == 3) { // Currently parsed strings are a valid level
+                bracketsFound = 0;
+
+                var newLevel = new Level(gameString.substring(0,cursor).trim());
+                this.#levels.push(newLevel);
+                console.log(newLevel);
+
+                gameString = gameString.substring(cursor);
+                cursor = 0;
+            } else { // Still looking for a valid level
+                cursor = gameString.indexOf("]", cursor)+1;
+                // If no more closing brackets, stops search. Otherwise continues
+                if (cursor == 0) {
+                    break;
+                } else {
+                    bracketsFound = bracketsFound + 1;
+                }
+            }
+        }
     }
 
     getCurrentLevel() {
@@ -370,4 +423,6 @@ window.onload = function() {
     const canvas = document.getElementById("game");
     document.getElementById("levelNumber").innerHTML = "Level: 1";
     document.getElementById("levelDescription").innerHTML = "Level description text";
+
+    newGame = new Game(document.getElementById("game"));
 }
