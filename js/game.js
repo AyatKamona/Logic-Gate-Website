@@ -121,7 +121,7 @@ class LogicGate extends GameComponent {
         var results = [];
 
         // Getting outputs of the logic gate's inputs
-        for (const input of this.#inputSet.values) {
+        for (const input of Array.from(this.#inputSet.values)) {
             if (input instanceof LogicGate) {
                 results.push(input.calculateOutput(input.logic));
             } else if (input instanceof UserInput || input instanceof StaticInput) {
