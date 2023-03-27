@@ -205,7 +205,8 @@ class Level {
     }
 
     #parseLevelString(levelString) {
-        var array = levelString.split(' ')
+        var input = levelString.split('[')
+        input = input.replaceAll('[', '').replaceAll(']', '')
         if (array.length != 3) {
             console.log("Error")
         }
