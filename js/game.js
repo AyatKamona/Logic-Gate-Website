@@ -3,6 +3,7 @@
 */
 
 class GameComponent {
+    // Unique String identifier of the component
     #componentId;
 
     constructor(componentId) {
@@ -16,32 +17,39 @@ class GameComponent {
     getId() {
         return(this.#componentId);
     }
-}
 
-// Class that handles game elements affected by user input
-class UserInput extends GameComponent {
-    // TODO: link to an interactable element on creation
-    // TODO: Extend StaticInput instead of GameComponent
-    constructor(componentId) {
-        super(componentId);
-    }
-
+    // An abstract method that requires implementation by a subclass
     getOutput() {
-        return true;
+        throw new Error("Method 'getOutput()' must be implemented.");
     }
 }
 
 // Class that holds an unchanging boolean value
 class StaticInput extends GameComponent {
-    input;
+    // Boolean input & output
+    _state;
 
-    constructor(componentId, inputValue) {
+    constructor(componentId, state) {
         super(componentId);
-        this.input = inputValue;
+        this._state = state;
     }
 
     getOutput() {
-        return this.input;
+        return this._state;
+    }
+}
+
+// Class that handles game elements affected by user input
+class UserInput extends StaticInput {
+    // TODO: link to an interactable element on creation
+    // TODO: Extend StaticInput instead of GameComponent
+    constructor(componentId) {
+        super(componentId, false);
+    }
+
+    ToggleOutput() {
+        this._state = this._state != true;
+        return this._state;
     }
 }
 
@@ -57,6 +65,10 @@ class LogicGateFactory {
                 return new NotGate(componentId);
             case "and":
                 return new AndGate(componentId);
+            case "or":
+                return new OrGate(componentId);
+            case "xor":
+                return new XorGate(componentId);
             default:
                 return null;
         }
@@ -65,27 +77,38 @@ class LogicGateFactory {
 
 // Abstract class that must be implemented by more concrete subclasses
 class LogicGate extends GameComponent {
-    inputSet = new Set();
-    outputSet = new Set();
-    inputLimit;
+    // Set of LogicGate objects representing input connections
+    #inputSet = new Set();
+    // Set of LogicGate objects representing output connections
+    #outputSet = new Set();
+    // Integer determining the maximum amount of inputs a logic gate can have
+    #inputLimit;
+    // Boolean representing the outcome of the last calculateOutput() result
+    #stateSnapshot;
 
     constructor(componentId, inputLimit) {
+        super(componentId);
         if (this.constructor == LogicGate) {
             throw new Error("LogicGate is an abstract class and must be extended.");
         } else {
-            super(componentId);
-            this.inputLimit = inputLimit;
+            this.#inputLimit = inputLimit;
         }
     }
 
     // Adds an object reference to the input set
     addInput(input) {
-        this.inputSet.add(input);
+        if (this.#inputSet.size < this.#inputLimit) {
+            this.#inputSet.add(input);
+        }
     }
 
     // Adds an object reference to the output set
     addOutput(output) {
-        this.outputSet.add(output);
+        this.#outputSet.add(output);
+    }
+
+    getOutput() {
+        return(this.#stateSnapshot);
     }
 
     // An abstract method that requires implementation by a subclass
@@ -95,10 +118,10 @@ class LogicGate extends GameComponent {
 
     // Recursively calculates the logical output of a gate and its children
     calculateOutput(logic) {
-        results = [];
+        var results = [];
 
         // Getting outputs of the logic gate's inputs
-        for (const input of inputSet.values) {
+        for (const input of Array.from(this.#inputSet.values)) {
             if (input instanceof LogicGate) {
                 results.push(input.calculateOutput(input.logic));
             } else if (input instanceof UserInput || input instanceof StaticInput) {
@@ -109,15 +132,18 @@ class LogicGate extends GameComponent {
         }
 
         // Filling unused input space with false values to prevent errors
-        if (this.inputLimit > 0) {
-            while (results.length < this.inputLimit) {
+        if (this.#inputLimit > 0) {
+            while (results.length < this.#inputLimit) {
                 results.push(false);
             }
         } else if (results.length == 0) { // Ensure at least one value is filled
             results.push(false);
         }
 
-        return logic(results);
+        var output = logic(results);
+        this.#stateSnapshot = output;
+
+        return output;
     }
 }
 
@@ -198,18 +224,30 @@ class Level {
 
     constructor(levelString) {
         this.#levelString = levelString;
-        stringArray = this.#parseLevelString(levelString);
-        this.#createComponents(stringArray[0]);
-        this.#createConnections(stringArray[1]);
-        this.#description(stringArray[2]);
+        this.reset();
     }
 
+    // Takes a string and returns an array of strings representing each stage of the level creation pipeline
     #parseLevelString(levelString) {
-        
+        var levelStringArray = levelString.split("]");
+
+        // Removing whitespace from non-description strings
+        levelStringArray[0] = levelStringArray[0].replace(/\s+/g, '');
+        levelStringArray[1] = levelStringArray[1].replace(/\s+/g, '');
+
+        // Removing Excess brackets
+        for (let i = 0; i < levelStringArray.length; i++) {
+            levelStringArray[i] = levelStringArray[i].replaceAll("[", "");
+        }
+
+        return(levelStringArray);
     }
     
+    // Creates components based on the string input and adds them to the #components map
     #createComponents(componentString) {
+        this.#components.clear();
         const componentStringArray = componentString.split(",");
+
         componentStringArray.forEach(element => {
             const keyValuePair = element.split("=");
             var newComponent;
@@ -234,21 +272,59 @@ class Level {
         });
     }
 
+    // Connects existing components using the addInput function
     #createConnections(connectionString) {
+        var filteredString = connectionString.replace(/\s+/g, '');
 
+        const connectionStringArray = filteredString.split(")");
+
+        connectionStringArray.forEach(element => {
+            // Ignoring empty array items
+            if(element != "") {
+                // Remove leading commas created by split
+                if (element.indexOf(",") == 0) {
+                    element = element.substring(1);
+                }
+
+                const connectionHostId = element.substring(0, element.indexOf("("));
+                const connectionHost = this.#components.get(connectionHostId);
+
+                if (connectionHost == null) {
+                    throw new Error("Connection host '" + connectionHostId + "' does not exist");
+                }
+
+                const inputArray =  element.substring(element.indexOf("(") + 1).split(",");
+
+                inputArray.forEach(connectionChildId => {
+                    const connectionChild = this.#components.get(connectionChildId);
+
+                    if (connectionChild == null) {
+                        throw new Error("Connection child '" + connectionChildId + "' does not exist");
+                    }
+
+                    connectionHost.addInput(connectionChild);
+                });
+            }
+        });
     }
 
+    // Returns the description of the level
     getDescription() {
         return(this.#description);
     }
 
+    // Returns a deep copy of the levels components
     getComponents() {
         var mapClone = new Map(this.#components);
         return(mapClone);
     }
 
+    // Resets the level to its default state
     reset() {
-
+        var stringArray = this.#parseLevelString(this.#levelString);
+        this.#createComponents(stringArray[0]);
+        this.#createConnections(stringArray[1]);
+        this.#description = stringArray[2];
     }
 }
 
@@ -261,10 +337,51 @@ class Game {
     // Integer value representing the current level
     #currentLevel;
 
-    constructor(canvas, filepath) {
+    constructor(canvas) {
         this.#canvas = canvas;
         this.#currentLevel = 0;
-        //TODO: Read file from path
+        var cursor = 0;
+        var bracketsFound = 0;
+        
+        // Levels are hardcoded for testing
+        var gameString = `
+        [userInput1=USERINPUT, notGate=NOT]
+        [notGate(userInput1)]
+        [This is a not gate, which inverts the input]
+        
+        [userInput1=USERINPUT, userInput2=USERINPUT, andGate=AND]
+        [andGate(userInput1,userInput2)]
+        [This is an and gate, which will only return true if both inputs are true]
+        
+        [userInput1=USERINPUT, userInput2=USERINPUT, orGate=OR]
+        [orGate(userInput1,userInput2)]
+        [Description]
+        
+        [userInput1=USERINPUT, userInput2=USERINPUT, xorGate=XOR]
+        [xorGate(userInput1,userInput2)]
+        [Description]
+        `;
+        
+        while (true) {
+            if (bracketsFound == 3) { // Currently parsed strings are a valid level
+                bracketsFound = 0;
+
+                var newLevel = new Level(gameString.substring(0,cursor).trim());
+                this.#levels.push(newLevel);
+                console.log(newLevel);
+
+                gameString = gameString.substring(cursor);
+                cursor = 0;
+            } else { // Still looking for a valid level
+                cursor = gameString.indexOf("]", cursor)+1;
+                // If no more closing brackets, stops search. Otherwise continues
+                if (cursor == 0) {
+                    break;
+                } else {
+                    bracketsFound = bracketsFound + 1;
+                }
+            }
+        }
     }
 
     getCurrentLevel() {
@@ -295,8 +412,19 @@ class Game {
     }
 
     // Draws UI elements to represent the state of the logic components of the level, and displays the level description 
+
     displayLevel() {
-        
+        var canvas = document.getElementById("game");
+        var context = canvas.getContext("2d");
+        var img = new Image();
+        img.src = "../images/ANDGate.png";
+        window.onload = function(){
+            context.drawImage(img, 100, 200, 50, 50);
+            context.beginPath();
+            context.moveTo(50, 50);
+            context.lineTo(100, 200);
+            context.stroke();
+            }; 
     }
 }
 
@@ -304,7 +432,8 @@ var canvas;
 
 window.onload = function() {
     const canvas = document.getElementById("game");
-    // Testing html interactions
     document.getElementById("levelNumber").innerHTML = "Level: 1";
     document.getElementById("levelDescription").innerHTML = "Level description text";
+
+    newGame = new Game(document.getElementById("game"));
 }
