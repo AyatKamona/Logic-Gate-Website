@@ -430,10 +430,10 @@ class Game {
         img4.onload = function() {
         // Draw images of gates on the canvas
             context.drawImage(img, 100, 10, 70, 70);
-            context.drawImage(img2, 100, 200, 70, 70);
+            context.drawImage(img3, 100, 200, 70, 70);
             context.drawImage(img2, 450, 10, 70, 70);
             context.drawImage(img4, 110, 110, 70, 70);
-            context.drawImage(img3, 340, 105, 70, 70);
+            context.drawImage(img2, 340, 105, 70, 70);
             context.drawImage(img, 650, 80, 70, 70);
 
             // Add text to the canvas
@@ -462,18 +462,15 @@ class Game {
         // Draw initial red circles on the canvas
         drawCircle(context,'red', 20, 20, 10, 0);
         drawCircle(context,'red', 20, 70, 10, 0);
-        drawCircle(context,'red', 20, 110, 10, 0);
         drawCircle(context,'red', 20, 150, 10, 0);
         drawCircle(context,'red', 20, 210, 10, 0);
         drawCircle(context,'red', 20, 260, 10, 0);
-        drawCircle(context,'red', 820, 118, 20, 0);
 
         // Define circle coordinates and colors
-        const circleStates = [false, false, false, false, false, false];
+        const circleStates = [false, false, false, false, false];
         const circlePositions = [
         { x: 20, y: 20 },
         { x: 20, y: 70 },
-        { x: 20, y: 110 },
         { x: 20, y: 150 },
         { x: 20, y: 210 },
         { x: 20, y: 260 }
@@ -491,6 +488,7 @@ class Game {
                 const isPressed = circleStates[i];
                 const fillStyle = isPressed ? "green" : "red";
                 drawCircle(context, fillStyle, circlePositions[i].x, circlePositions[i].y, 10, 0);
+                drawCircle(context,'red', 820, 118, 20, 0);
                 }
           }
         // Create instances of all the gates
@@ -505,15 +503,15 @@ class Game {
         function updateGates() {
             context.fillStyle = 'green';
             context.font = '20px serif';
-            var andOutput1 = andGate1.logic([circleStates[4], circleStates[5]]);
-            var notOutput = notGate.logic([circleStates[3]]);
+            var orOutput = orGate.logic([circleStates[3], circleStates[4]]);
+            var notOutput = notGate.logic([circleStates[2]]);
             var xorOutput1 = xorGate1.logic([circleStates[0], circleStates[1]]);
-            var orOutput = orGate.logic([andOutput1, circleStates[2]]);
-            var andOutput2 = andGate2.logic([xorOutput1, orOutput]);
-            var xorOutput2 = xorGate2.logic([andOutput2, orOutput]);
+            var andOutput2 = andGate2.logic([orOutput, notOutput]);
+            var andOutput1 = andGate1.logic([xorOutput1, andOutput2]);
+            var xorOutput2 = xorGate2.logic([andOutput2, andOutput1]);
             
             
-           if(andOutput1 == true) { // If the output is true, draw a checkmark
+           if(orOutput == true) { // If the output is true, draw a checkmark
                 context.fillText('✓', 70, 240);
             }
             else { // Otherwise, clear the checkmark
@@ -534,14 +532,14 @@ class Game {
                 context.clearRect(70, 30, 20, 20);
               }
 
-            if(orOutput == true){ // If the output is true, draw a checkmark
+            if(andOutput2 == true){ // If the output is true, draw a checkmark
                 context.fillText('✓', 310, 145);
             }
             else{
                 context.clearRect(310, 130, 20, 20);
             }
 
-            if(andOutput2 == true){ // If the output is true, draw a checkmark
+            if(andOutput1 == true){ // If the output is true, draw a checkmark
                 context.fillText('✓', 425, 50);
             }
             else{ // Otherwise, clear the checkmark
@@ -597,12 +595,10 @@ class Game {
         drawLine(context, 420, 70, 450, 70);
         drawLine(context, 420, 140, 420, 70)
         drawLine(context, 300, 235, 300, 165);
-        drawLine(context, 300, 115, 300, 105);
-        drawLine(context, 50, 105, 300, 105);
-        drawLine(context, 300, 115, 350, 115);
+        drawLine(context, 200, 115, 350, 115);
         drawLine(context, 300, 165, 350, 165);
         drawLine(context, 150, 145, 200, 145);
-        drawLine(context, 200, 145, 200, 45);
+        drawLine(context, 200, 145, 200, 115);
         drawLine(context, 450, 45, 600, 45);
         drawLine(context, 600, 45, 600, 90);
         drawLine(context, 600, 90, 650, 90);
@@ -617,8 +613,7 @@ var canvas;
 window.onload = function() {
     const canvas = document.getElementById("game");
     document.getElementById("levelNumber").innerHTML = "Level: 1";
-    document.getElementById("levelDescription").innerHTML = "Level description text";
-
+    document.getElementById("levelDescription").innerHTML = "The aim of this level is to teach you the basics of how logic gates work and how to use them to turn on a light bulb.";
     newGame = new Game(document.getElementById("game"));
     newGame.displayLevel();
 }
