@@ -165,11 +165,11 @@ class AndGate extends LogicGate {
     }
 
     logic(inputs) {
-        inputs.forEach(element => {
-            if (element == false) {
-                return false;
+        for (let i = 0; i < inputs.length; i++) {
+            if (inputs[i] == false) {
+              return false;
             }
-        });
+          }
 
         return true;
     }
@@ -182,13 +182,14 @@ class OrGate extends LogicGate {
     }
 
     logic(inputs) {
-        inputs.forEach(element => {
-            if (element == true) {
-                return true;
+        let isTrue = false;
+        for(let i=0; i<inputs.length; i++) {
+            if(inputs[i] == true) {
+                isTrue = true;
+                break;
             }
-        });
-
-        return false;
+        }
+        return isTrue;
     }
 }
 
@@ -197,21 +198,11 @@ class XorGate extends LogicGate {
     constructor(componentId) {
         super(componentId, 2);
     }
-
+    
     logic(inputs) {
-        var isTrue = false;
-
-        inputs.forEach(element => {
-            if (element == true) {
-                if (isTrue == true) {
-                    return (false);
-                }
-
-                isTrue = true;
-            }
-        });
-
-        return(isTrue);
+        const input1 = inputs[0];
+        const input2 = inputs[1];
+        return (input1 && !input2) || (!input1 && input2);
     }
 }
 
@@ -411,21 +402,214 @@ class Game {
         this.displayLevel();
     }
 
+    logicGate(){
+
+    }
+    
     // Draws UI elements to represent the state of the logic components of the level, and displays the level description 
 
     displayLevel() {
+        // Get the canvas element and set the context to 2D
         var canvas = document.getElementById("game");
         var context = canvas.getContext("2d");
+
+        // Create an array to store all components of the game
+        this.components = [];
+
+        // Load images for the gates
         var img = new Image();
-        img.src = "../images/ANDGate.png";
-        window.onload = function(){
-            context.drawImage(img, 100, 200, 50, 50);
+        var img2 = new Image();
+        var img3 = new Image();
+        var img4 = new Image();
+        img.src = "./images/XORGate.png";
+        img2.src = "./images/ANDGate.png";
+        img3.src = "./images/ORGate.png";
+        img4.src = "./images/NOTGate.png";
+
+        // Draw the gates and lines once images are loaded
+        img4.onload = function() {
+        // Draw images of gates on the canvas
+            context.drawImage(img, 100, 10, 70, 70);
+            context.drawImage(img2, 100, 200, 70, 70);
+            context.drawImage(img2, 450, 10, 70, 70);
+            context.drawImage(img4, 110, 110, 70, 70);
+            context.drawImage(img3, 340, 105, 70, 70);
+            context.drawImage(img, 650, 80, 70, 70);
+
+            // Add text to the canvas
+            context.fillStyle = 'green';
+            context.font = '20px serif';
+            context.fillText('✓', 70, 140);
+        };
+
+        // Draw a line from (x1, y1) to (x2, y2)
+        function drawLine(context, x1, y1, x2, y2) {
             context.beginPath();
-            context.moveTo(50, 50);
-            context.lineTo(100, 200);
+            context.moveTo(x1, y1);
+            context.lineTo(x2, y2);
+            context.strokeStyle = 'black';
             context.stroke();
-            }; 
+        }   
+
+        // Draw a circle with given fill color at (x1, y1) with given radius
+        function drawCircle(context, fillStyle, x1, y1, x2, y2){
+            context.fillStyle = fillStyle;
+            context.beginPath();
+            context.arc(x1, y1, x2, y2, 2 * Math.PI);
+            context.fill();
+        }
+
+        // Draw initial red circles on the canvas
+        drawCircle(context,'red', 20, 20, 10, 0);
+        drawCircle(context,'red', 20, 70, 10, 0);
+        drawCircle(context,'red', 20, 110, 10, 0);
+        drawCircle(context,'red', 20, 150, 10, 0);
+        drawCircle(context,'red', 20, 210, 10, 0);
+        drawCircle(context,'red', 20, 260, 10, 0);
+        drawCircle(context,'red', 820, 118, 20, 0);
+
+        // Define circle coordinates and colors
+        const circleStates = [false, false, false, false, false, false];
+        const circlePositions = [
+        { x: 20, y: 20 },
+        { x: 20, y: 70 },
+        { x: 20, y: 110 },
+        { x: 20, y: 150 },
+        { x: 20, y: 210 },
+        { x: 20, y: 260 }
+        ];
+
+        // Toggle the state of a circle at the given index
+        function updateCircleState(index) {
+            circleStates[index] = !circleStates[index];
+        }   
+
+        // Redraw circles on the canvas based on current circleStates
+        function drawCircles() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < circleStates.length; i++) {
+                const isPressed = circleStates[i];
+                const fillStyle = isPressed ? "green" : "red";
+                drawCircle(context, fillStyle, circlePositions[i].x, circlePositions[i].y, 10, 0);
+                }
+          }
+        // Create instances of all the gates
+        var andGate1 = new AndGate("andGate1");
+        var orGate = new OrGate("orGate");
+        var notGate = new NotGate("notGate");
+        var xorGate1 = new XorGate("xorGate1");
+        var andGate2 = new AndGate("andGate2");
+        var xorGate2 = new XorGate("xorGate2");
+
+        // Update the outputs of all the gates based on the current state of the circles
+        function updateGates() {
+            context.fillStyle = 'green';
+            context.font = '20px serif';
+            var andOutput1 = andGate1.logic([circleStates[4], circleStates[5]]);
+            var notOutput = notGate.logic([circleStates[3]]);
+            var xorOutput1 = xorGate1.logic([circleStates[0], circleStates[1]]);
+            var orOutput = orGate.logic([andOutput1, circleStates[2]]);
+            var andOutput2 = andGate2.logic([xorOutput1, orOutput]);
+            var xorOutput2 = xorGate2.logic([andOutput2, orOutput]);
+            
+            
+           if(andOutput1 == true) { // If the output is true, draw a checkmark
+                context.fillText('✓', 70, 240);
+            }
+            else { // Otherwise, clear the checkmark
+                context.clearRect(70, 220, 20, 20);
+            }
+
+            if(notOutput == true){ // If the output is true, draw a checkmark
+                context.fillText('✓', 70, 140);
+            }
+            else{ // Otherwise, clear the checkmark
+                context.clearRect(70, 120, 20, 20);
+            }
+
+            if(xorOutput1 == true){ // If the output is true, draw a checkmark
+                context.fillText('✓', 70, 50);
+            }
+            else { // Otherwise, clear the checkmark
+                context.clearRect(70, 30, 20, 20);
+              }
+
+            if(orOutput == true){ // If the output is true, draw a checkmark
+                context.fillText('✓', 310, 145);
+            }
+            else{
+                context.clearRect(310, 130, 20, 20);
+            }
+
+            if(andOutput2 == true){ // If the output is true, draw a checkmark
+                context.fillText('✓', 425, 50);
+            }
+            else{ // Otherwise, clear the checkmark
+                context.clearRect(425, 30, 20, 20);
+            }
+
+            if(xorOutput2 == true){ // If the output is true, draw a checkmark and a green circle at the specified coordinates
+                drawCircle(context,'green', 820, 118, 20, 0);
+                context.fillText('✓', 620, 120);
+            }
+            else{ // Otherwise, clear the checkmark and draw a red circle at the specified coordinates
+                drawCircle(context,'red', 820, 118, 20, 0);
+                context.clearRect(620, 100, 20, 20);
+            }
+        }   
+        updateGates(); // update the gate inputs and outputs
+
+         // function to handle click event on circles
+        function handleCircleClick(event) {
+            // get the x and y coordinates of the click event
+            const x = event.offsetX;
+            const y = event.offsetY;
+            // loop through all the circles on the canvas
+            for (let i = 0; i < circleStates.length; i++) {
+                // get the x and y coordinates of the current circle
+                const circleX = circlePositions[i].x;
+                const circleY = circlePositions[i].y;
+                // calculate the distance between the click and the current circle
+                const distance = Math.sqrt((x - circleX) ** 2 + (y - circleY) ** 2);
+                // if the distance is within 10 pixels of the circle, update the circle state and redraw it
+                if (distance <= 10) {
+                    updateCircleState(i);
+                    drawCircle(context, circleStates[i] ? "green" : "red", circleX, circleY, 10, 0);
+                    updateGates();
+                    break;
+                }
+        }
     }
+
+        canvas.addEventListener("click", handleCircleClick);
+        drawCircles();
+    
+        drawLine(context, 50, 0, 50, 300);
+        drawLine(context, 100, 70, 50, 70);
+        drawLine(context, 100, 20, 50, 20);
+        drawLine(context, 100, 45, 350, 45);
+        drawLine(context, 350, 20, 350, 46);
+        drawLine(context, 350, 20, 450, 20);
+        drawLine(context, 100, 210, 50, 210);
+        drawLine(context, 150, 235, 300, 235)
+        drawLine(context, 100, 260, 50, 260);
+        drawLine(context, 50, 145, 110, 145);
+        drawLine(context, 420, 70, 450, 70);
+        drawLine(context, 420, 140, 420, 70)
+        drawLine(context, 300, 235, 300, 165);
+        drawLine(context, 300, 115, 300, 105);
+        drawLine(context, 50, 105, 300, 105);
+        drawLine(context, 300, 115, 350, 115);
+        drawLine(context, 300, 165, 350, 165);
+        drawLine(context, 150, 145, 200, 145);
+        drawLine(context, 200, 145, 200, 45);
+        drawLine(context, 450, 45, 600, 45);
+        drawLine(context, 600, 45, 600, 90);
+        drawLine(context, 600, 90, 650, 90);
+        drawLine(context, 400, 140, 650, 140);
+        drawLine(context, 700, 116, 800, 116);
+
+}
 }
 
 var canvas;
@@ -436,4 +620,5 @@ window.onload = function() {
     document.getElementById("levelDescription").innerHTML = "Level description text";
 
     newGame = new Game(document.getElementById("game"));
+    newGame.displayLevel();
 }
